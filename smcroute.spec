@@ -10,13 +10,10 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Source0:        http://ftp.troglobit.com/smcroute/%{name}-%{version}.tar.xz
 
-# https://fedorahosted.org/fpc/ticket/174
+# https://fedorahosted.org/fpc/tickeet/174
 Provides:       bundled(libite) = 1.4.2
 
-BuildRequires:      systemd
-Requires(post):     systemd
-Requires(preun):    systemd
-Requires(postun):   systemd
+BuildRequires:  libcap-devel
 
 
 %description
@@ -29,42 +26,37 @@ SMCRoute is a daemon and command line tool to manipulate the multicast routing t
 %build
 %configure
 export CFLAGS="$RPM_OPT_FLAGS"
-autogen.sh
-configure
 make %{?_smp_mflags}
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install-strip DESTDIR=${RPM_BUILD_ROOT}
-rm $RPM_BUILD_ROOT/usr/share/doc/smroute/COPYING
+make install DESTDIR=${RPM_BUILD_ROOT}
+make install-man DESTDIR=${RPM_BUILD_ROOT}
+
+%if 0%{?el6}
+mkdir -p %{buildroot}%{_sysconfdir}/init.d
+ln -s /usr/share/doc/smcroute/smcroute.init %{_sysconfdir}/init.d/smcroute
+rm %{buildroot}%{_unitdir}
+%endif
 
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 
-%post
-%systemd_post %{name}.service
-
-
-%preun
-%systemd_preun %{name}.service
-
-
-%postun
-%systemd_postun_with_restart %{name}.service
-
-
 %files
 %defattr(-,root,root,-)
 %{_sbindir}/smcroute
 %{_mandir}/man8/*
-%license COPYING 
-%doc README.md AUTHORS CONTRIBUTING.md ChangeLog.md TODO.md
-%config(noreplace) %{_sysconfdir}/%{name}.conf
+%license COPYING
+%doc README.md AUTHORS ChangeLog.md TODO COPYING smcroute.conf
+%doc smcroute.conf smcroute.init 
+%if 0%{?el6}
+%{_sysconfdir}/init.d/smcroute
+%else
 %{_unitdir}/%{name}.service
-
+%endif
 
 %changelog
 * Mon May 15 2017 Matthew Taylor <taylor.matthewd@gmail.com> - 2.2.2-1
