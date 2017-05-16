@@ -1,0 +1,5 @@
+.build*
+smcroute-*.tar*
+*.rpm
+results_smcroute
+smcroute-2.2.2

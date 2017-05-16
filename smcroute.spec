@@ -1,5 +1,5 @@
 Name:           smcroute
-Version:        2.2.2
+Version:        2.1.1
 Release:        1%{?dist}
 Summary:        Static multicast routing daemon for UNIX 
 
@@ -13,7 +13,11 @@ Source0:        http://ftp.troglobit.com/smcroute/%{name}-%{version}.tar.xz
 # https://fedorahosted.org/fpc/tickeet/174
 Provides:       bundled(libite) = 1.4.2
 
+%if 0%{?el6}
 BuildRequires:  libcap-devel
+%else
+BuildRequires:  systemd, libcap-devel
+%endif
 
 
 %description
@@ -34,11 +38,8 @@ rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=${RPM_BUILD_ROOT}
 make install-man DESTDIR=${RPM_BUILD_ROOT}
 
-%if 0%{?el6}
-mkdir -p %{buildroot}%{_sysconfdir}/init.d
-ln -s /usr/share/doc/smcroute/smcroute.init %{_sysconfdir}/init.d/smcroute
-rm %{buildroot}%{_unitdir}
-%endif
+install -d -m 755 %{buildroot}%{_sysconfdir}/init.d
+install -p -m 755 %{buildroot}/usr/share/doc/%{name}/smcroute.init %{buildroot}/etc/init.d/smcroute
 
 
 %clean
@@ -50,13 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/smcroute
 %{_mandir}/man8/*
 %license COPYING
-%doc README.md AUTHORS ChangeLog.md TODO COPYING smcroute.conf
-%doc smcroute.conf smcroute.init 
-%if 0%{?el6}
-%{_sysconfdir}/init.d/smcroute
-%else
-%{_unitdir}/%{name}.service
-%endif
+/usr/share/doc/smcroute/*
+/etc/init.d/smcroute
 
 %changelog
 * Mon May 15 2017 Matthew Taylor <taylor.matthewd@gmail.com> - 2.2.2-1
